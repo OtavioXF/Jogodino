@@ -1,16 +1,6 @@
-# GitHub Pages
+# Dino Bloom 🦕
 
-<img src="https://octodex.github.com/images/Professortocat_v2.png" align="right" height="200px" />
+Jogo infinito (estilo Dino do Chrome) onde você controla um Bronto pulando rochas e coletando plantas pelo caminho. Pule, faça pulo duplo/triplo, ache as raras asas brancas escondidas no mapa para voar, e use as plantas coletadas para comprar melhorias na loja entre as corridas.
 
-Hey OtavioXF!
-
-Mona here. I'm done preparing your exercise. Hope you enjoy! 💚
-
-Remember, it's self-paced so feel free to take a break! ☕️
-
-[![](https://img.shields.io/badge/Go%20to%20Exercise-%E2%86%92-1f883d?style=for-the-badge&logo=github&labelColor=197935)](https://github.com/OtavioXF/Jogodino/issues/1)
-
----
-
-&copy; 2025 GitHub &bull; [Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/code_of_conduct.md) &bull; [MIT License](https://gh.io/mit)
+**Controles:** Espaço/toque para pular · segurar para pulo mais alto · toque duplo para pulo duplo.
 
