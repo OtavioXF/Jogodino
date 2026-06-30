@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Dino Bloom 🦕 v3</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --g0:#060e06;--g1:#0d1f0d;--g2:#163016;--g3:#2d6a2d;
+  --bright:#4ade80;--glow:#86efac;--pale:#d1fae5;
+  --amber:#f59e0b;--amber2:#fde68a;
+  --rock:#5a4a3a;--rock2:#7a6a5a;
+  --red:#ef4444;--cream:#fef9ee;
+  --coin:#f59e0b;
+}
+html,body{height:100%;background:#030a03;overflow:hidden;font-family:'Nunito',sans-serif;}
+
+/* ═══ WRAPPER ═══ */
+#wrap{
+  position:relative;
+  width:min(900px,100vw);height:min(520px,calc(100vw*520/900));
+  margin:auto;top:50%;transform:translateY(-50%);
+  overflow:hidden;border-radius:14px;
+  box-shadow:0 0 0 2px #4ade8022,0 0 60px #4ade8018;
+}
+canvas{display:block;width:100%;height:100%;}
+
+/* ═══ SCREENS ═══ */
+.scr{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  background:linear-gradient(155deg,#060e06 0%,#0a1e0a 55%,#0c0a1a 100%);
+  z-index:30;
+}
+.scr.off{display:none;}
+
+/* animated bg glow */
+.scr::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 300px 200px at 20% 30%,#4ade8009,transparent),
+             radial-gradient(ellipse 200px 300px at 80% 70%,#f59e0b06,transparent);
+  animation:pulse 5s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+
+/* logo */
+.dino-bounce{font-size:clamp(3rem,9vw,5.5rem);animation:jmp 1.4s ease-in-out infinite;display:block;}
+@keyframes jmp{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+.logo{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(2.2rem,7vw,4.2rem);
+  color:var(--bright);line-height:1;
+  text-shadow:0 0 30px #4ade8060,0 3px 0 var(--g3);
+  letter-spacing:2px;
+}
+.logo-sub{font-size:clamp(.65rem,2vw,.9rem);color:var(--glow);opacity:.7;letter-spacing:3px;text-transform:uppercase;margin-top:.3em;}
+
+/* buttons */
+.btn{
+  padding:.75em 2.4em;border:none;border-radius:50px;cursor:pointer;
+  font-family:'Fredoka One',cursive;font-size:clamp(.9rem,2.8vw,1.25rem);
+  transition:transform .12s,box-shadow .12s;position:relative;z-index:1;
+}
+.btn-green{
+  background:linear-gradient(135deg,var(--g3),var(--bright));
+  color:var(--g0);
+  box-shadow:0 4px 18px #4ade8035,0 2px 0 var(--g3);
+  margin-top:1.8em;
+}
+.btn-green:hover{transform:translateY(-3px);box-shadow:0 8px 28px #4ade8050;}
+.btn-green:active{transform:translateY(1px);}
+.btn-amber{
+  background:linear-gradient(135deg,#b45309,var(--amber));
+  color:#1a0e00;
+  box-shadow:0 4px 18px #f59e0b35,0 2px 0 #92400e;
+  margin-top:.8em;
+}
+.btn-amber:hover{transform:translateY(-3px);box-shadow:0 8px 28px #f59e0b50;}
+.btn-amber:active{transform:translateY(1px);}
+.btn-sm{padding:.5em 1.6em;font-size:clamp(.75rem,2.2vw,1rem);}
+
+/* ── START SCREEN ── */
+#startCtrl{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:.55em;
+  margin-top:1.2em;width:min(480px,90vw);position:relative;z-index:1;
+}
+.ctrl-card{
+  background:#4ade8008;border:1px solid #4ade8022;
+  border-radius:10px;padding:.55em .7em;
+  font-size:clamp(.6rem,1.7vw,.82rem);color:var(--cream);
+}
+.ctrl-card b{color:var(--amber);}
+
+/* ── HUD ── */
+#hud{
+  position:absolute;top:0;left:0;right:0;z-index:20;pointer-events:none;
+  display:flex;align-items:center;gap:clamp(6px,1.5vw,12px);
+  padding:clamp(6px,1.5vw,10px) clamp(8px,2vw,14px);
+  background:linear-gradient(to bottom,#00000055,transparent);
+}
+.hud-coins{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(.9rem,2.8vw,1.4rem);
+  color:var(--amber2);text-shadow:0 0 10px #f59e0b80;
+}
+.hud-dist{
+  font-size:clamp(.6rem,1.7vw,.85rem);color:var(--glow);
+  margin-left:auto;
+}
+.hud-score{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(.85rem,2.5vw,1.2rem);color:var(--pale);
+}
+
+/* ── SHOP SCREEN ── */
+#shopScr{overflow-y:auto;padding:1.5em 1em;}
+.shop-title{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(1.6rem,5vw,2.6rem);
+  color:var(--bright);
+  text-shadow:0 0 20px #4ade8055;
+  position:relative;z-index:1;
+}
+.shop-wallet{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(1rem,3vw,1.4rem);
+  color:var(--amber2);margin:.4em 0 1em;
+  position:relative;z-index:1;
+}
+.shop-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(min(200px,85vw),1fr));
+  gap:.8em;width:min(700px,92vw);
+  position:relative;z-index:1;
+}
+.shop-card{
+  background:#4ade8009;border:1px solid #4ade8025;
+  border-radius:12px;padding:1em;
+  display:flex;flex-direction:column;gap:.4em;
+  transition:border-color .2s,background .2s;
+}
+.shop-card:hover{background:#4ade8013;border-color:#4ade8044;}
+.shop-card.maxed{border-color:#fde68a44;background:#f59e0b08;}
+.shop-card-icon{font-size:2rem;text-align:center;}
+.shop-card-name{
+  font-family:'Fredoka One',cursive;font-size:clamp(.9rem,2.5vw,1.1rem);
+  color:var(--pale);text-align:center;
+}
+.shop-card-desc{font-size:clamp(.6rem,1.6vw,.78rem);color:var(--glow);opacity:.8;text-align:center;}
+.shop-card-level{
+  display:flex;gap:4px;justify-content:center;margin:.2em 0;
+}
+.lvl-dot{width:10px;height:10px;border-radius:50%;background:#4ade8030;border:1px solid #4ade8055;}
+.lvl-dot.on{background:var(--bright);box-shadow:0 0 6px var(--bright);}
+.shop-card .buy-btn{
+  margin-top:.4em;padding:.45em .8em;border:none;border-radius:30px;cursor:pointer;
+  font-family:'Fredoka One',cursive;font-size:clamp(.75rem,2vw,.9rem);
+  background:linear-gradient(135deg,#92400e,var(--amber));color:#1a0e00;
+  box-shadow:0 2px 10px #f59e0b25;transition:transform .1s,opacity .2s;
+}
+.shop-card .buy-btn:hover{transform:translateY(-2px);}
+.shop-card .buy-btn:active{transform:translateY(1px);}
+.shop-card .buy-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+.buy-btn.maxed-lbl{background:linear-gradient(135deg,#064e3b,#10b981);color:#d1fae5;}
+
+.shop-back{margin-top:1.2em;position:relative;z-index:1;}
+
+/* ── GAME OVER ── */
+#goScr{z-index:35;}
+.go-ttl{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(1.8rem,6vw,3rem);
+  color:var(--red);text-shadow:0 0 20px #ef444455;
+  position:relative;z-index:1;
+}
+.go-run-info{
+  position:relative;z-index:1;
+  margin:.8em 0 .3em;
+  font-size:clamp(.65rem,1.8vw,.9rem);color:var(--glow);
+  display:flex;gap:.8em;flex-wrap:wrap;justify-content:center;
+}
+.go-run-info span{
+  background:#4ade8010;border:1px solid #4ade8025;
+  border-radius:20px;padding:.25em .8em;
+}
+.go-earned{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(1.1rem,3.5vw,1.6rem);
+  color:var(--amber2);
+  text-shadow:0 0 14px #f59e0b70;
+  position:relative;z-index:1;
+  margin:.5em 0;
+}
+.go-btns{display:flex;flex-direction:column;align-items:center;gap:.5em;position:relative;z-index:1;}
+
+/* ── TOAST ── */
+#toast{
+  position:absolute;top:55px;left:50%;transform:translateX(-50%) translateY(0);
+  font-family:'Fredoka One',cursive;font-size:clamp(.85rem,2.5vw,1.2rem);
+  color:var(--bright);text-shadow:0 0 12px #4ade8080;
+  pointer-events:none;z-index:25;opacity:0;
+  transition:opacity .25s,transform .25s;white-space:nowrap;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
+
+/* ── MOBILE JUMP BTN ── */
+#jumpBtn{
+  position:absolute;bottom:14px;right:14px;
+  width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(135deg,var(--g3),var(--bright));
+  border:2px solid var(--bright);
+  font-size:1.6rem;cursor:pointer;z-index:20;
+  box-shadow:0 4px 20px #4ade8040;
+  display:none;
+  align-items:center;justify-content:center;
+  color:var(--g0);font-family:'Fredoka One',cursive;
+  user-select:none;
+}
+@media (pointer:coarse){#jumpBtn{display:flex;}}
+
+/* ── WING POWERUP INDICATOR ── */
+#wingBar{
+  position:absolute;bottom:14px;left:14px;
+  display:flex;align-items:center;gap:6px;
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(.7rem,2vw,.95rem);
+  color:#c4b5fd;text-shadow:0 0 10px #a78bfa80;
+  pointer-events:none;z-index:20;
+  opacity:0;transition:opacity .3s;
+}
+#wingBar.show{opacity:1;}
+#wingBarFill{
+  width:80px;height:8px;border-radius:4px;
+  background:#4ade8018;border:1px solid #a78bfa44;
+  overflow:hidden;
+}
+#wingBarInner{height:100%;border-radius:4px;
+  background:linear-gradient(90deg,#7c3aed,#c4b5fd);
+  transition:width .1s;
+  box-shadow:0 0 6px #a78bfa80;
+}
+.shop-card-tag{
+  font-size:.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  background:#4ade8022;border:1px solid #4ade8040;border-radius:10px;
+  color:var(--glow);padding:.15em .55em;display:inline-block;text-align:center;
+}
+.shop-card-tag.new-tag{background:#f59e0b18;border-color:#f59e0b44;color:var(--amber2);}
+.shop-card-tag.power-tag{background:#7c3aed18;border-color:#a78bfa44;color:#c4b5fd;}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="c"></canvas>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-coins">🌿 <span id="hudCoins">0</span></div>
+    <div class="hud-score">⭐ <span id="hudScore">0</span></div>
+    <div class="hud-dist" id="hudDist">0m</div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast"></div>
+
+  <!-- JUMP BUTTON (mobile) -->
+  <div id="jumpBtn">▲</div>
+
+  <!-- WING BAR -->
+  <div id="wingBar">🪶 <div id="wingBarFill"><div id="wingBarInner" style="width:0%"></div></div></div>
+
+  <!-- ── START SCREEN ── -->
+  <div class="scr" id="startScr">
+    <span class="dino-bounce">🦕</span>
+    <div class="logo">DINO BLOOM</div>
+    <div class="logo-sub">Corra · Pule · Voe · Colete</div>
+    <div id="startCtrl">
+      <div class="ctrl-card"><b>Toque / Espaço</b><br>Pular</div>
+      <div class="ctrl-card"><b>Segurar</b><br>Pulo mais alto</div>
+      <div class="ctrl-card"><b>2× Toque</b><br>Pulo duplo</div>
+      <div class="ctrl-card"><b>Plantas 🌱</b><br>Valem moedas!</div>
+      <div class="ctrl-card"><b>Asas 🪶</b><br>Voa pelo mapa!</div>
+      <div class="ctrl-card"><b>Loja 🛒</b><br>9 melhorias!</div>
+    </div>
+    <button class="btn btn-green" id="btnPlay">🌿 Jogar</button>
+    <button class="btn btn-amber btn-sm" id="btnShopStart">🛒 Loja de Melhorias</button>
+  </div>
+
+  <!-- ── SHOP SCREEN ── -->
+  <div class="scr off" id="shopScr">
+    <div class="shop-title">🛒 Loja</div>
+    <div class="shop-wallet">🌿 <span id="shopCoins">0</span> plantas</div>
+    <div class="shop-grid" id="shopGrid"></div>
+    <button class="btn btn-green btn-sm shop-back" id="btnShopBack">← Voltar</button>
+  </div>
+
+  <!-- ── GAME OVER ── -->
+  <div class="scr off" id="goScr">
+    <div class="go-ttl">💀 Bronto Caiu!</div>
+    <div class="go-run-info">
+      <span>⭐ <b id="goScore">0</b></span>
+      <span>📏 <b id="goDist">0m</b></span>
+      <span>🌿 coletadas: <b id="goCollected">0</b></span>
+    </div>
+    <div class="go-earned" id="goEarned">+ 0 🌿 plantas</div>
+    <div class="go-btns">
+      <button class="btn btn-green" id="btnRestart">🌱 Jogar de Novo</button>
+      <button class="btn btn-amber btn-sm" id="btnShopGo">🛒 Ir à Loja</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  DINO BLOOM v2 — Clean Runner + Shop
+// ═══════════════════════════════════════
+
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+
+// ── Resize ──
+let LW = 0, LH = 0; // logical (CSS-pixel) canvas size, used by all game/draw logic
+
+function resize(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2.5); // cap to avoid overkill on very high-DPI phones
+  const cssW = canvas.parentElement.clientWidth;
+  const cssH = canvas.parentElement.clientHeight;
+
+  canvas.width  = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+  canvas.style.width  = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+
+  LW = cssW; LH = cssH;
+
+  // reset then scale so all drawing code can keep using CSS-pixel coordinates
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ─────────────────────────────────────
+//  PERSISTENCE
+// ─────────────────────────────────────
+function loadSave(){
+  try{ return JSON.parse(localStorage.getItem('dinobloom_v2')||'{}'); } catch{ return {}; }
+}
+function writeSave(){
+  localStorage.setItem('dinobloom_v2', JSON.stringify(SAVE));
+}
+const SAVE = Object.assign({
+  coins: 0,
+  bestScore: 0,
+  bestDist: 0,
+  upgrades: {},   // id → level (0-based)
+}, loadSave());
+
+// ─────────────────────────────────────
+//  UPGRADES DEFINITION
+// ─────────────────────────────────────
+const UPGRADES = [
+  {
+    id:'jumpHeight', icon:'🦘', name:'Salto Poderoso',
+    desc:'Bronto pula bem mais alto — essencial para desviar de rochas grandes',
+    tag:'base',
+    levels:[
+      {cost:25,  label:'Nível 1 (+12%)', delta:0.12},
+      {cost:60,  label:'Nível 2 (+12%)', delta:0.12},
+      {cost:120, label:'Nível 3 (+12%)', delta:0.12},
+      {cost:220, label:'Nível 4 (+14%)', delta:0.14},
+      {cost:380, label:'Nível 5 (+14%)', delta:0.14},
+    ],
+    apply(G,lvl){ G.jumpMult = 1 + (lvl<=3 ? lvl*0.12 : 3*0.12 + (lvl-3)*0.14); }
+  },
+  {
+    id:'doubleJump', icon:'🌀', name:'Pulo Duplo',
+    desc:'Segundo pulo no ar — fundamental para alcançar plantas nas alturas',
+    tag:'base',
+    levels:[
+      {cost:55, label:'Desbloquear'},
+    ],
+    apply(G,lvl){ G.hasDoubleJump = lvl >= 1; }
+  },
+  {
+    id:'tripleJump', icon:'✨', name:'Pulo Triplo',
+    desc:'Terceiro pulo no ar! Requer Pulo Duplo desbloqueado',
+    tag:'new',
+    levels:[
+      {cost:200, label:'Desbloquear'},
+    ],
+    apply(G,lvl){ G.hasTripleJump = lvl >= 1; }
+  },
+  {
+    id:'coinMagnet', icon:'🧲', name:'Imã de Plantas',
+    desc:'Atrai plantas automaticamente de longe',
+    tag:'base',
+    levels:[
+      {cost:45,  label:'Nível 1 (pequeno)'},
+      {cost:100, label:'Nível 2 (médio)'},
+      {cost:200, label:'Nível 3 (grande)'},
+      {cost:350, label:'Nível 4 (enorme)'},
+    ],
+    apply(G,lvl){ G.magnetRange = 20 + lvl * 26; }
+  },
+  {
+    id:'coinValue', icon:'💰', name:'Plantas Valiosas',
+    desc:'Cada planta coletada vale mais moedas',
+    tag:'base',
+    levels:[
+      {cost:60,  label:'Nível 1 (+50%)'},
+      {cost:150, label:'Nível 2 (+50%)'},
+      {cost:280, label:'Nível 3 (+50%)'},
+      {cost:500, label:'Nível 4 (+75%)'},
+    ],
+    apply(G,lvl){ G.coinMult = 1 + (lvl<=3 ? lvl*0.5 : 3*0.5 + (lvl-3)*0.75); }
+  },
+  {
+    id:'slowSpeed', icon:'🐢', name:'Passo Controlado',
+    desc:'Reduz a velocidade máxima — jogo mais controlável por mais tempo',
+    tag:'new',
+    levels:[
+      {cost:80,  label:'Nível 1 (-8% vel. max)'},
+      {cost:170, label:'Nível 2 (-8% vel. max)'},
+      {cost:300, label:'Nível 3 (-8% vel. max)'},
+    ],
+    apply(G,lvl){ G.speedCapMult = 1 - lvl * 0.08; }
+  },
+  {
+    id:'shield', icon:'🛡️', name:'Escudo de Folhas',
+    desc:'Sobrevive a 1 colisão — o escudo se regenera com o tempo!',
+    tag:'base',
+    levels:[
+      {cost:140, label:'Desbloquear'},
+      {cost:320, label:'Regeneração rápida'},
+    ],
+    apply(G,lvl){ G.hasShield = lvl >= 1; G.shieldRegenTime = lvl >= 2 ? 12 : 20; }
+  },
+  {
+    id:'plantRain', icon:'🌧️', name:'Chuva de Plantas',
+    desc:'Mais plantas aparecem no mapa a cada corrida',
+    tag:'new',
+    levels:[
+      {cost:90,  label:'Nível 1'},
+      {cost:200, label:'Nível 2'},
+      {cost:380, label:'Nível 3'},
+    ],
+    apply(G,lvl){ G.plantFreqMult = 1 - lvl * 0.18; }
+  },
+  {
+    id:'wingTime', icon:'🪶', name:'Asas Duradouras',
+    desc:'As asas que aparecem no mapa duram mais tempo ao voar',
+    tag:'power',
+    levels:[
+      {cost:120, label:'Nível 1 (+1.5s)'},
+      {cost:260, label:'Nível 2 (+1.5s)'},
+      {cost:450, label:'Nível 3 (+2s)'},
+    ],
+    apply(G,lvl){ G.wingDuration = 3 + (lvl<=2 ? lvl*1.5 : 2*1.5 + 2); }
+  },
+];
+
+// ─────────────────────────────────────
+//  GAME CONSTANTS
+// ─────────────────────────────────────
+const GRAVITY       = 3400;   // gravidade normal (ao soltar) — cai mais rápido
+const GRAVITY_HOLD  = 1200;   // gravidade reduzida enquanto segura (sobe mais)
+const JUMP_FORCE    = -580;   // velocidade inicial do pulo — menor altura
+const GROUND_FRAC   = 0.73;
+
+const PLANT_TYPES = [
+  {emoji:'🌱', size:18, value:1, color:'#4ade80'},
+  {emoji:'🌿', size:20, value:2, color:'#22c55e'},
+  {emoji:'🌸', size:22, value:3, color:'#f472b6'},
+  {emoji:'🍀', size:24, value:5, color:'#fbbf24'},
+];
+
+// ─────────────────────────────────────
+//  GAME STATE
+// ─────────────────────────────────────
+let G   = null;
+let RAF = 0;
+let lastT = 0;
+
+function buildG(){
+  const g = {
+    running:   false,
+    dead:      false,
+    score:     0,
+    dist:      0,
+    displayDist: 0,
+    speed:     200,
+    baseSpeed: 200,
+    speedCapMult: 1,
+    frame:     0,
+    tick:      0,
+
+    // upgrades applied
+    jumpMult:      1,
+    hasDoubleJump: false,
+    hasTripleJump: false,
+    magnetRange:   20,
+    coinMult:      1,
+    hasShield:     false,
+    shieldActive:  false,
+    shieldRegenTime: 20,
+    shieldRegenTimer: 0,
+    plantFreqMult: 1,
+    wingDuration:  3,
+
+    // dino
+    dino:{
+      x:0, y:0, vy:0,
+      w:64, h:56,
+      onGround: false,
+      jumpsUsed: 0,   // track how many jumps used (0=ground, 1=first jump, etc.)
+      legPhase: 0,
+      dead: false,
+      shieldFlash: 0,
+      squish: 1,
+    },
+
+    // wing powerup state
+    wingItem: null,         // the flying wing on the map
+    wingTimer: 0,           // time until next wing spawn
+    wingActive: false,      // player is flying right now
+    wingFlyTime: 0,         // remaining fly seconds
+    wingSpawnDist: 900,     // first wing spawn at ~900m — rare, takes a while to appear
+
+    // world
+    rocks:       [],
+    plants:      [],
+    bgClouds:    [],
+    bgMountains: [],
+    groundDecos: [],
+    particles:   [],
+
+    // timers
+    rockTimer:  1.5,
+    plantTimer: 0.9,
+    rockJustSpawned: false,
+
+    // session stats
+    plantsThisRun: 0,
+    coinsEarned:   0,
+  };
+
+  // apply saved upgrades
+  UPGRADES.forEach(u=>{
+    const lvl = SAVE.upgrades[u.id] || 0;
+    if(lvl > 0) u.apply(g, lvl);
+  });
+
+  g.speed = g.baseSpeed;
+
+  // apply shield state from perk
+  if(g.hasShield) g.shieldActive = true;
+
+  return g;
+}
+
+// ─────────────────────────────────────
+//  INPUT  —  Hold = jump higher (Chrome Dino style)
+//  Pressionar = pula com força total
+//  Segurar = gravidade reduzida enquanto sobe (vai mais alto)
+//  Soltar = gravidade normal cai rápido
+// ─────────────────────────────────────
+const KEY = {};
+let jumpHeld = false;   // botão está sendo segurado agora?
+
+function pressStart(){
+  if(!G || G.dead) return;
+  if(!G.running){ G.running = true; return; }
+  const d = G.dino;
+
+  // If flying with wings, jump cancels wing early but doesn't re-jump
+  if(G.wingActive) {
+    // during wing flight, don't jump — just let it run
+    jumpHeld = true;
+    return;
+  }
+
+  const maxJumps = G.hasTripleJump ? 3 : (G.hasDoubleJump ? 2 : 1);
+
+  if(d.onGround){
+    d.vy = JUMP_FORCE * G.jumpMult;
+    d.onGround = false;
+    d.jumpsUsed = 1;
+    d.squish = 0.75;
+    spawnJumpDust();
+  } else if(d.jumpsUsed < maxJumps){
+    d.jumpsUsed++;
+    const mult = d.jumpsUsed === 2 ? 0.85 : 0.70;  // each extra jump slightly weaker
+    d.vy = JUMP_FORCE * G.jumpMult * mult;
+    d.squish = 0.75;
+    spawnJumpDust();
+    if(d.jumpsUsed === 2) toast('💫 Pulo Duplo!');
+    if(d.jumpsUsed === 3) toast('✨ Pulo Triplo!');
+  }
+
+  jumpHeld = true;
+}
+
+function pressEnd(){
+  jumpHeld = false;
+}
+
+// Keyboard
+window.addEventListener('keydown', e=>{
+  if(['Space','ArrowUp'].includes(e.code)) e.preventDefault();
+  if(!KEY[e.code]){
+    KEY[e.code] = true;
+    if(e.code === 'Space' || e.code === 'ArrowUp') pressStart();
+  }
+});
+window.addEventListener('keyup', e=>{
+  const wasDown = KEY[e.code];
+  KEY[e.code] = false;
+  if(wasDown && (e.code === 'Space' || e.code === 'ArrowUp')) pressEnd();
+});
+
+// Touch / mouse on canvas + button
+canvas.addEventListener('touchstart',  e=>{ e.preventDefault(); pressStart(); },{passive:false});
+canvas.addEventListener('touchend',    e=>{ e.preventDefault(); pressEnd();   },{passive:false});
+canvas.addEventListener('touchcancel', e=>{ e.preventDefault(); pressEnd();   },{passive:false});
+
+const jBtn = document.getElementById('jumpBtn');
+jBtn.addEventListener('touchstart',  e=>{ e.preventDefault(); pressStart(); },{passive:false});
+jBtn.addEventListener('touchend',    e=>{ e.preventDefault(); pressEnd();   },{passive:false});
+jBtn.addEventListener('touchcancel', e=>{ e.preventDefault(); pressEnd();   },{passive:false});
+jBtn.addEventListener('mousedown',   e=>{ e.preventDefault(); pressStart(); });
+window.addEventListener('mouseup',   e=>{ pressEnd(); });
+
+// ─────────────────────────────────────
+//  SPAWNERS
+// ─────────────────────────────────────
+function gY(){ return LH * GROUND_FRAC; }
+
+function spawnRock(){
+  const W = LW, y = gY();
+  const r = Math.random();
+  let sz;
+  if(r < 0.5){
+    // small squat rock
+    sz = {w:20+Math.random()*14, h:16+Math.random()*12};
+  } else if(r < 0.8){
+    // medium rock
+    sz = {w:26+Math.random()*10, h:22+Math.random()*10};
+  } else {
+    // tall skinny rock (rare)
+    sz = {w:14+Math.random()*8, h:30+Math.random()*14};
+  }
+  G.rocks.push({
+    x: W+10, y: y - sz.h,
+    w: sz.w, h: sz.h,
+    variant: Math.floor(Math.random()*3),
+  });
+}
+
+// Plant lanes — clearly separated from rock zone.
+// Rocks sit at gY - ~15 to gY - ~44 (their tops).
+// GROUND lane: gY - 90..108  → reachable while running, clearly above rocks
+// AIR lane:    gY - 145..190 → requires a small jump
+// HIGH lane:   gY - 220..270 → requires full / double jump
+function spawnPlant(){
+  const W  = LW;
+  const gy = gY();
+  const pt = PLANT_TYPES[Math.floor(Math.pow(Math.random(), 2) * PLANT_TYPES.length)];
+
+  const roll = Math.random();
+  let py;
+  if(roll < 0.40){
+    py = gy - 90 - Math.random() * 18;   // GROUND lane
+  } else if(roll < 0.75){
+    py = gy - 145 - Math.random() * 45;  // AIR lane
+  } else {
+    py = gy - 220 - Math.random() * 50;  // HIGH lane
+  }
+
+  // Overlap guard: if a rock is close on X and plant would sit at rock-top height, push up
+  const spawnX = W + 20;
+  const nearRock = G.rocks.some(r =>
+    Math.abs(spawnX - (r.x + r.w / 2)) < 90 && py + pt.size > r.y - 12
+  );
+  if(nearRock) py = gy - 148 - Math.random() * 40;
+
+  G.plants.push({
+    ...pt,
+    x: spawnX,
+    y: py,
+    bob: Math.random() * Math.PI * 2,
+    age: 0,
+    collected: false,
+  });
+}
+
+function spawnJumpDust(){
+  const d = G.dino;
+  for(let i=0;i<7;i++){
+    G.particles.push({
+      x: d.x+d.w/2 + (Math.random()-.5)*20,
+      y: d.y+d.h,
+      vx:(Math.random()-.5)*70, vy:-Math.random()*80-20,
+      life:0.6, max:0.6, r:3+Math.random()*3,
+      color:`hsl(${110+Math.random()*40},70%,55%)`,
+    });
+  }
+}
+
+function spawnShieldBreak(){
+  const d = G.dino;
+  for(let i=0;i<14;i++){
+    const a = (i/14)*Math.PI*2;
+    G.particles.push({
+      x:d.x+d.w/2, y:d.y+d.h/2,
+      vx:Math.cos(a)*120, vy:Math.sin(a)*120,
+      life:0.8, max:0.8, r:4+Math.random()*4,
+      color:'#38bdf8',
+    });
+  }
+}
+
+function spawnCollectBurst(x,y,color){
+  for(let i=0;i<8;i++){
+    const a=Math.random()*Math.PI*2, s=50+Math.random()*100;
+    G.particles.push({
+      x,y, vx:Math.cos(a)*s, vy:Math.sin(a)*s-60,
+      life:0.7, max:0.7, r:2+Math.random()*4,
+      color,
+    });
+  }
+}
+
+function spawnWingItem(){
+  const W = LW;
+  const gy = gY();
+  // Spawn the wing at mid-air height, clearly visible
+  const py = gy - 130 - Math.random() * 60;
+  G.wingItem = {
+    x: W + 30,
+    y: py,
+    bob: 0,
+    glow: 0,
+    collected: false,
+  };
+}
+
+function spawnWingBurst(x, y){
+  for(let i=0;i<16;i++){
+    const a = (i/16)*Math.PI*2;
+    const s = 60 + Math.random()*100;
+    G.particles.push({
+      x, y,
+      vx: Math.cos(a)*s, vy: Math.sin(a)*s - 40,
+      life:1.0, max:1.0, r:3+Math.random()*5,
+      color: i%2===0 ? '#ffffff' : '#e5e7eb',
+    });
+  }
+}
+
+function update(dt){
+  if(!G || !G.running || G.dead) return;
+  G.tick += dt;
+  G.frame++;
+
+  // speed ramp — softer curve, capped at 560*speedCapMult (was 680)
+  const speedCap = 560 * (G.speedCapMult || 1);
+  G.speed = Math.min(G.baseSpeed + G.dist * 0.035, speedCap);
+
+  // distance & score
+  G.dist  += G.speed * dt;
+  // O contador de metros exibido usa uma escala mais lenta/realista —
+  // G.dist (em px) continua controlando a dificuldade internamente,
+  // mas o "metro" mostrado na tela avança bem mais devagar.
+  G.displayDist += G.speed * dt * 0.18;
+  G.score += G.speed * dt * 0.15 | 0;
+
+  const sp = G.speed;
+
+  // ── Shield Regeneration ──
+  if(G.hasShield && !G.shieldActive){
+    G.shieldRegenTimer += dt;
+    if(G.shieldRegenTimer >= G.shieldRegenTime){
+      G.shieldActive = true;
+      G.shieldRegenTimer = 0;
+      toast('🛡️ Escudo regenerado!');
+    }
+  }
+
+  // ── Wing Item Spawn logic ──
+  // Rare: appears first ~900m in, then only every 900-1500m after that
+  if(!G.wingItem && !G.wingActive && G.dist >= G.wingSpawnDist){
+    G.wingTimer -= dt;
+    if(G.wingTimer <= 0){
+      spawnWingItem();
+      G.wingTimer = 0;
+    }
+  }
+
+  // ── Wing Flight ──
+  if(G.wingActive){
+    G.wingFlyTime -= dt;
+    const pct = Math.max(0, G.wingFlyTime / G.wingDuration);
+    document.getElementById('wingBarInner').style.width = (pct * 100) + '%';
+    if(G.wingFlyTime <= 0){
+      G.wingActive = false;
+      document.getElementById('wingBar').classList.remove('show');
+      // Next wing is rare — far away
+      G.wingSpawnDist = G.dist + 900 + Math.random() * 600;
+    }
+  }
+
+  // ── Dino ──
+  const d = G.dino;
+  d.x = LW * 0.14;
+  const floor = gY() - d.h;
+
+  if(G.wingActive){
+    // Flying: dino glides smoothly at mid-air height, rocks are avoided
+    const targetY = gY() * 0.38;  // float high up
+    d.y += (targetY - d.y) * dt * 3.5;
+    d.vy = 0;
+    d.onGround = false;
+    d.jumpsUsed = 0;
+    // wing flap particles occasionally
+    if(Math.random() < 0.15){
+      G.particles.push({
+        x: d.x + d.w/2 + (Math.random()-.5)*20,
+        y: d.y + d.h/2,
+        vx: -30 - Math.random()*40, vy: (Math.random()-.5)*30,
+        life:0.5, max:0.5, r:2+Math.random()*3,
+        color: Math.random()<0.5 ? '#ffffff' : '#e5e7eb',
+      });
+    }
+  } else {
+    // Normal physics
+    const grav = (jumpHeld && d.vy < 0) ? GRAVITY_HOLD : GRAVITY;
+    d.vy += grav * dt;
+    d.y  += d.vy * dt;
+
+    if(d.y >= floor){
+      d.y = floor; d.vy = 0; d.onGround = true; d.jumpsUsed = 0;
+    } else {
+      d.onGround = false;
+    }
+  }
+
+  if(d.onGround) d.legPhase += dt * 8;
+  if(d.shieldFlash > 0) d.shieldFlash -= dt;
+
+  // Squish: ease back to 1 after jump
+  d.squish += (1 - d.squish) * dt * 14;
+  if(Math.abs(d.squish - 1) < 0.01) d.squish = 1;
+
+  // ── Rocks ──
+  G.rockJustSpawned = false;
+  G.rockTimer -= dt;
+  if(G.rockTimer <= 0){
+    spawnRock();
+    G.rockJustSpawned = true;
+    G.rockTimer = Math.max(0.8, (2.0 - G.dist*0.00018)) * (0.75 + Math.random()*0.5);
+  }
+
+  G.rocks = G.rocks.filter(r=>{
+    r.x -= sp * dt;
+    if(r.x + r.w < 0) return false;
+
+    // no collision while flying
+    if(!G.wingActive){
+      const hx=d.x+8, hy=d.y+6, hw=d.w-16, hh=d.h-6;
+      if(hx<r.x+r.w && hx+hw>r.x && hy<r.y+r.h && hy+hh>r.y){
+        hitDino(r);
+      }
+    }
+    return true;
+  });
+
+  // ── Plants ──
+  G.plantTimer -= dt;
+  if(G.plantTimer <= 0){
+    if(G.rockJustSpawned) {
+      G.plantTimer = 0.18;
+    } else {
+      spawnPlant();
+      G.plantTimer = (1.0 + Math.random() * 0.85) * (G.plantFreqMult || 1);
+    }
+  }
+  G.rockJustSpawned = false;
+
+  G.plants = G.plants.filter(p=>{
+    p.x -= sp * dt;
+    p.age += dt;
+    if(p.x + p.size < 0) return false;
+    if(p.collected){ return p.age < 0.3; }
+
+    // magnet
+    const cx = d.x+d.w/2, cy = d.y+d.h/2;
+    const dx = cx - p.x, dy = cy - p.y;
+    const dist2 = dx*dx + dy*dy;
+    const mr = G.magnetRange * G.magnetRange;
+    if(dist2 < mr * mr && dist2 > 0){
+      const dist = Math.sqrt(dist2);
+      const force = (G.magnetRange*G.magnetRange / dist) * dt * 8;
+      p.x += (dx/dist)*force;
+      p.y += (dy/dist)*force;
+    }
+
+    // collect
+    const px = p.x - p.size, py2 = p.y - p.size;
+    const pw = p.size * 2,   ph2 = p.size * 2;
+    if(d.x + 6 < px + pw && d.x + d.w - 6 > px && d.y + 4 < py2 + ph2 && d.y + d.h - 4 > py2){
+      const earned = Math.round(p.value * G.coinMult);
+      G.coinsEarned   += earned;
+      G.plantsThisRun += 1;
+      G.score += earned * 15;
+      spawnCollectBurst(p.x, p.y, p.color);
+      p.collected = true;
+      flashCoinHUD();
+    }
+    return true;
+  });
+
+  // ── Wing item movement & collection ──
+  if(G.wingItem && !G.wingItem.collected){
+    const wi = G.wingItem;
+    wi.x -= sp * dt;
+    wi.bob += dt;
+    wi.glow = Math.sin(G.tick * 4) * 0.5 + 0.5;
+
+    if(wi.x + 30 < 0){
+      G.wingItem = null;
+      G.wingSpawnDist = G.dist + 800 + Math.random()*500;
+    } else {
+      // collect check
+      const cx = d.x + d.w/2, cy = d.y + d.h/2;
+      const dx = cx - wi.x, dy = cy - wi.y;
+      if(Math.sqrt(dx*dx+dy*dy) < 46){
+        wi.collected = true;
+        G.wingActive = true;
+        G.wingFlyTime = G.wingDuration;
+        G.wingItem = null;
+        spawnWingBurst(wi.x, wi.y);
+        toast('🪶 Asas Mágicas! Você está voando!');
+        document.getElementById('wingBar').classList.add('show');
+        document.getElementById('wingBarInner').style.width = '100%';
+      }
+    }
+  }
+
+  // ── Particles ──
+  G.particles = G.particles.filter(p=>{
+    p.x += p.vx*dt; p.y += p.vy*dt;
+    p.vy += 300*dt;
+    p.life -= dt;
+    return p.life > 0;
+  });
+
+  updateHUD();
+}
+
+let coinFlashT=0;
+function flashCoinHUD(){
+  coinFlashT=0.35;
+}
+
+function hitDino(rock){
+  const d = G.dino;
+  if(G.shieldActive){
+    G.shieldActive = false;
+    d.shieldFlash  = 1.0;
+    rock.destroyed = true;
+    spawnShieldBreak();
+    toast('🛡️ Escudo ativado!');
+    return;
+  }
+  dieDino();
+}
+
+function dieDino(){
+  if(G.dead) return;
+  G.dead = true; G.running = false;
+  G.dino.dead = true;
+
+  // death burst
+  const d = G.dino;
+  for(let i=0;i<18;i++){
+    const a=Math.random()*Math.PI*2, s=80+Math.random()*200;
+    G.particles.push({
+      x:d.x+d.w/2,y:d.y+d.h/2,
+      vx:Math.cos(a)*s, vy:Math.sin(a)*s,
+      life:1.2,max:1.2, r:3+Math.random()*7,
+      color:`hsl(${Math.random()*60+90},70%,55%)`,
+    });
+  }
+
+  // save coins
+  SAVE.coins += G.coinsEarned;
+  if(G.score > SAVE.bestScore) SAVE.bestScore = G.score;
+  if(Math.floor(G.displayDist) > SAVE.bestDist) SAVE.bestDist = Math.floor(G.displayDist);
+  writeSave();
+
+  setTimeout(showGameOver, 900);
+}
+
+// ─────────────────────────────────────
+//  BACKGROUND IMAGE — Fundo.gif (animated)
+// ─────────────────────────────────────
+// Browsers can pause GIF frame decoding for elements that are display:none
+// OR positioned far off-screen / heavily optimized away. The most reliable
+// cross-browser trick is to keep the <img> at a real, tiny, visible size
+// (1x1px) inside the actual page flow, with zero visual footprint via
+// clip-path, so the browser treats it as "on screen" and keeps animating it.
+const bgImg = document.createElement('img');
+bgImg.style.position = 'absolute';
+bgImg.style.width = '1px';
+bgImg.style.height = '1px';
+bgImg.style.left = '0';
+bgImg.style.top = '0';
+bgImg.style.opacity = '0.01';
+bgImg.style.pointerEvents = 'none';
+bgImg.style.zIndex = '-1';
+document.body.appendChild(bgImg);
+let bgLoaded = false;
+bgImg.onload  = () => { bgLoaded = true; };
+bgImg.onerror = () => { bgLoaded = false; }; // sem arquivo = usa fundo padrão
+bgImg.src = 'Fundo.gif';
+
+// ─────────────────────────────────────
+//  RENDER
+// ─────────────────────────────────────
+function render(){
+  if(!G) return;
+  const W = LW, H = LH;
+  const gy = gY();
+
+  // clear full physical canvas first (transform is scaled, so use save/restore with identity)
+  ctx.save();
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.restore();
+
+  // ── SKY / FUNDO ──
+  if(bgLoaded && bgImg.naturalWidth > 0){
+    // Cover-fit: preenche o canvas mantendo proporção, sem distorcer
+    const imgRatio = bgImg.naturalWidth / bgImg.naturalHeight;
+    const canRatio  = W / H;
+    let dw, dh, dx, dy;
+    if(imgRatio > canRatio){
+      dh = H; dw = H * imgRatio; dx = (W - dw) / 2; dy = 0;
+    } else {
+      dw = W; dh = W / imgRatio; dx = 0; dy = (H - dh) / 2;
+    }
+    ctx.drawImage(bgImg, dx, dy, dw, dh);
+    // Leve escurecimento para manter legibilidade dos elementos
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.fillRect(0, 0, W, H);
+  } else {
+    // Fundo padrão verde escuro
+    const sk = ctx.createLinearGradient(0,0,0,H);
+    sk.addColorStop(0,'#0a1a08');
+    sk.addColorStop(0.5,'#12280e');
+    sk.addColorStop(1,'#1a3a14');
+    ctx.fillStyle=sk; ctx.fillRect(0,0,W,H);
+  }
+
+  // scrolling BG layer (parallax hills) — only as fallback when no custom GIF background loaded
+  if(!(bgLoaded && bgImg.naturalWidth > 0)){
+    drawBgHills(W,H,gy);
+  }
+
+  // ── GROUND ──
+  // Camada de terra marrom (corpo do chão)
+  const dirtGrad = ctx.createLinearGradient(0,gy,0,H);
+  dirtGrad.addColorStop(0,   '#5c4326');
+  dirtGrad.addColorStop(0.15,'#4a3520');
+  dirtGrad.addColorStop(1,   '#2a1d12');
+  ctx.fillStyle = dirtGrad;
+  ctx.fillRect(0, gy, W, H - gy);
+
+  // textura sutil de terra (pequenas manchas)
+  ctx.save();
+  ctx.globalAlpha = 0.12;
+  ctx.fillStyle = '#000000';
+  const dirtScrollX = G && G.running ? (G.dist * 0.5) : 0;
+  for(let i=0;i<14;i++){
+    const dx = (((i*67) - dirtScrollX) % (W+60) + (W+60)) % (W+60) - 30;
+    const dyy = gy + 14 + (i % 4) * ((H-gy-14) / 4);
+    ctx.beginPath();
+    ctx.ellipse(dx, dyy, 10+((i*13)%9), 4, 0, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // Fina camada de grama verde só na superfície do chão
+  const grassH = Math.max(6, (H - gy) * 0.10);
+  const grassGrad = ctx.createLinearGradient(0,gy,0,gy+grassH);
+  grassGrad.addColorStop(0,   '#4ade80');
+  grassGrad.addColorStop(0.5, '#2d8a3e');
+  grassGrad.addColorStop(1,   '#1a5a26');
+  ctx.fillStyle = grassGrad;
+  ctx.fillRect(0, gy, W, grassH);
+
+  // borda irregular da grama (serrilhado sutil, dá textura orgânica)
+  ctx.save();
+  ctx.fillStyle = '#3aae5a';
+  ctx.globalAlpha = 0.5;
+  const jagScroll = G && G.running ? (G.dist * 0.6) : 0;
+  ctx.beginPath();
+  ctx.moveTo(0, gy + grassH);
+  const step = 14;
+  for(let x=0; x<=W+step; x+=step){
+    const jx = (((x - jagScroll) % (W+step)) + (W+step)) % (W+step);
+    const jh = 2 + Math.sin((x+jagScroll)*0.15) * 2.5;
+    ctx.lineTo(jx, gy + grassH*0.3 + jh);
+  }
+  ctx.lineTo(W, gy+grassH); ctx.closePath(); ctx.fill();
+  ctx.restore();
+
+  // ground edge glow
+  ctx.strokeStyle='#4ade8055'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(W,gy); ctx.stroke();
+
+  // grass tufts
+  drawGrassTufts(W,gy);
+
+  // ── PLANTS ──
+  G.plants.forEach(p=>{
+    if(p.collected) return;
+    const bob = Math.sin(G.tick*2.5+p.bob)*4;
+    ctx.save();
+    ctx.font = `${p.size}px serif`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.shadowColor=p.color; ctx.shadowBlur=10;
+    ctx.fillText(p.emoji, p.x, p.y+bob);
+    ctx.restore();
+  });
+
+  // ── ROCKS ──
+  G.rocks.forEach(r=>{
+    if(r.destroyed) return;
+    drawRock(r);
+  });
+
+  // ── PARTICLES ──
+  G.particles.forEach(p=>{
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, p.life/p.max);
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // ── WING ITEM (white, faint, rare — hard to spot on purpose) ──
+  if(G.wingItem && !G.wingItem.collected){
+    const wi = G.wingItem;
+    const bob = Math.sin(wi.bob * 2.5) * 6;
+    ctx.save();
+    // very subtle pulsing — barely visible halo
+    ctx.globalAlpha = 0.10 + wi.glow * 0.08;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(wi.x, wi.y + bob, 22 + wi.glow * 4, 0, Math.PI*2);
+    ctx.stroke();
+    // faint white feather, low opacity
+    ctx.globalAlpha = 0.32 + wi.glow * 0.1;
+    ctx.font = '30px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = '#ffffff';
+    ctx.shadowBlur = 6;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('🪶', wi.x, wi.y + bob);
+    ctx.restore();
+  }
+
+  // ── DINO ──
+  drawDino();
+
+  // ── COIN HUD FLASH ──
+  if(coinFlashT>0){
+    coinFlashT -= 0.016;
+    ctx.save();
+    ctx.globalAlpha=coinFlashT*0.4;
+    ctx.fillStyle='#fbbf24';
+    ctx.fillRect(0,0,100,36);
+    ctx.restore();
+  }
+
+  // ── WAITING HINT ──
+  if(G && !G.running && !G.dead){
+    ctx.save();
+    ctx.font=`${Math.max(14,LW*0.025)}px 'Fredoka One', cursive`;
+    ctx.textAlign='center'; ctx.fillStyle='#86efac';
+    ctx.shadowColor='#4ade80'; ctx.shadowBlur=12;
+    ctx.fillText('Pressione ESPAÇO / Toque para começar!', W/2, gy-80);
+    ctx.restore();
+  }
+}
+
+let hillOffset = 0;
+function drawBgHills(W,H,gy){
+  // hills scroll at a fraction of game speed
+  if(G && G.running) hillOffset = (hillOffset + G.speed * 0.012) % (W*0.8);
+  // far hills only — trees removed (were nearly invisible / cluttered the GIF background)
+  ctx.save(); ctx.globalAlpha=0.25; ctx.fillStyle='#1e4a18';
+  for(let i=0;i<6;i++){
+    const hx=((i*190 - hillOffset*0.4)%W+W)%W;
+    ctx.beginPath();
+    ctx.moveTo(hx,gy);
+    ctx.quadraticCurveTo(hx+80,gy-70+Math.sin(i)*20,hx+160,gy);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+// ── grass tufts (static, clipped to ground) ──
+const tufts=[];
+for(let i=0;i<30;i++) tufts.push({phase:Math.random()*Math.PI*2,x:Math.random()});
+function drawGrassTufts(W,gy){
+  ctx.save(); ctx.strokeStyle='#4ade8055'; ctx.lineWidth=1.5;
+  tufts.forEach(t=>{
+    const tx=(t.x*W - (G&&G.running?G.dist*0.4:0)%W + W*2)%W;
+    ctx.beginPath();
+    ctx.moveTo(tx,gy);
+    ctx.lineTo(tx-3,gy-8-Math.sin(G?G.tick*1.5+t.phase:0)*2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(tx+4,gy);
+    ctx.lineTo(tx+7,gy-6-Math.sin(G?G.tick*1.5+t.phase+1:0)*2);
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+
+// ── rock drawing — natural mossy stones ──
+const ROCK_PALETTES=[
+  {base:'#6b5a48',mid:'#7e6c58',light:'#9a8870',moss:'#4a7a2a'},
+  {base:'#585858',mid:'#6e6e6e',light:'#888',   moss:'#3a6a1a'},
+  {base:'#4e5e40',mid:'#617550',light:'#7a9060',moss:'#2a5a1a'},
+];
+function drawRock(r){
+  const p = ROCK_PALETTES[r.variant];
+  const cx=r.x+r.w/2, cy=r.y+r.h/2;
+  const rx=r.w/2, ry=r.h/2;
+
+  ctx.save();
+
+  // drop shadow
+  ctx.save();
+  ctx.globalAlpha=0.22;
+  ctx.fillStyle='#000';
+  ctx.beginPath();
+  ctx.ellipse(cx, r.y+r.h+3, rx*0.85, 4, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  // main body — slightly irregular by using bezier
+  ctx.beginPath();
+  ctx.moveTo(r.x + r.w*0.5, r.y);
+  ctx.bezierCurveTo(
+    r.x + r.w*0.85, r.y,
+    r.x + r.w,      r.y + r.h*0.3,
+    r.x + r.w,      r.y + r.h*0.65
+  );
+  ctx.bezierCurveTo(
+    r.x + r.w,      r.y + r.h,
+    r.x + r.w*0.7,  r.y + r.h,
+    r.x + r.w*0.5,  r.y + r.h
+  );
+  ctx.bezierCurveTo(
+    r.x + r.w*0.15, r.y + r.h,
+    r.x,             r.y + r.h*0.85,
+    r.x,             r.y + r.h*0.55
+  );
+  ctx.bezierCurveTo(
+    r.x,             r.y + r.h*0.1,
+    r.x + r.w*0.18, r.y,
+    r.x + r.w*0.5,  r.y
+  );
+  ctx.closePath();
+
+  const grd = ctx.createLinearGradient(r.x, r.y, r.x+r.w*0.6, r.y+r.h);
+  grd.addColorStop(0, p.light);
+  grd.addColorStop(0.45, p.mid);
+  grd.addColorStop(1, p.base);
+  ctx.fillStyle=grd; ctx.fill();
+  ctx.strokeStyle=p.base+'bb'; ctx.lineWidth=1; ctx.stroke();
+
+  // moss strip on top
+  ctx.save();
+  ctx.clip();
+  ctx.fillStyle=p.moss;
+  ctx.globalAlpha=0.55;
+  ctx.beginPath();
+  ctx.ellipse(cx, r.y+3, rx*0.7, 4, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  // small highlight
+  ctx.save();
+  ctx.globalAlpha=0.28;
+  ctx.fillStyle='#fff';
+  ctx.beginPath();
+  ctx.ellipse(r.x+r.w*0.32, r.y+r.h*0.25, r.w*0.18, r.h*0.12, -0.3, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.restore();
+}
+
+// ── dino drawing — cute sauropod with squish/stretch ──
+function drawDino(){
+  const d   = G.dino;
+  const lp  = d.legPhase;
+  const onG = d.onGround;
+
+  const S  = d.w / 64;
+  const ox = d.x;
+  // Squish pivots at feet: shift oy so bottom stays on ground
+  const sq = d.squish ?? 1;
+  const oy = d.y + d.h * (1 - sq);   // feet stay planted
+
+  ctx.save();
+  if(d.dead) ctx.globalAlpha = 0.45;
+  ctx.translate(ox, oy);
+  ctx.scale(S, S * sq);
+
+  const isShield  = d.shieldFlash > 0;
+  const bodyMain  = d.dead ? '#6a8a6a' : (isShield ? '#7de8ff' : '#52c85a');
+  const bodyLight = d.dead ? '#8aaa8a' : (isShield ? '#b0f4ff' : '#6edb76');
+  const bodyDark  = d.dead ? '#4a6a4a' : (isShield ? '#4ab8d8' : '#3aaa3a');
+  const bellyCol  = d.dead ? '#aaccaa' : (isShield ? '#d0f8ff' : '#a8f0b0');
+
+  const fill   = c => { ctx.fillStyle   = c; };
+  const stroke = (c, w=1.5) => { ctx.strokeStyle = c; ctx.lineWidth = w; };
+
+  // tail
+  const tailWag = onG ? Math.sin(lp)*5 : -4;
+  ctx.beginPath();
+  ctx.moveTo(20, 38);
+  ctx.quadraticCurveTo(4, 34+tailWag, 0, 22+tailWag*0.4);
+  ctx.quadraticCurveTo(6, 12, 16, 32);
+  ctx.closePath();
+  fill(bodyDark); ctx.fill(); stroke(bodyDark+'aa'); ctx.stroke();
+
+  // legs
+  const lOff1 = onG ? Math.sin(lp)*5   : 0;
+  const lOff2 = onG ? Math.sin(lp+Math.PI)*5 : 0;
+  ctx.save(); fill(bodyDark);
+  ctx.beginPath(); ctx.roundRect(28,40,9,10+Math.max(0,lOff1),4); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(26,48+Math.max(0,lOff1),12,6,3); ctx.fill();
+  ctx.restore();
+  ctx.save(); fill(bodyDark);
+  ctx.beginPath(); ctx.roundRect(40,40,9,10+Math.max(0,lOff2),4); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(38,48+Math.max(0,lOff2),12,6,3); ctx.fill();
+  ctx.restore();
+
+  // body
+  const bg = ctx.createRadialGradient(36,30,4,36,30,26);
+  bg.addColorStop(0,bodyLight); bg.addColorStop(1,bodyMain);
+  ctx.beginPath(); ctx.ellipse(36,32,22,17,0,0,Math.PI*2);
+  ctx.fillStyle=bg; ctx.fill(); stroke(bodyDark); ctx.stroke();
+
+  // belly
+  ctx.beginPath(); ctx.ellipse(37,37,14,9,0,0,Math.PI*2);
+  fill(bellyCol); ctx.globalAlpha=0.45; ctx.fill();
+  ctx.globalAlpha = d.dead ? 0.45 : 1;
+
+  // dorsal spikes
+  fill(bodyDark);
+  [[30,16,5,9],[24,19,4,8],[18,22,3,7]].forEach(([sx,sy,bw,bh])=>{
+    ctx.beginPath(); ctx.moveTo(sx,sy);
+    ctx.quadraticCurveTo(sx+bw*.5,sy-bh,sx+bw,sy);
+    ctx.closePath(); ctx.fill();
+  });
+
+  // neck
+  ctx.beginPath();
+  ctx.moveTo(50,35); ctx.quadraticCurveTo(56,20,52,8);
+  ctx.quadraticCurveTo(48,4,44,10); ctx.quadraticCurveTo(48,20,44,34);
+  ctx.closePath(); fill(bodyMain); ctx.fill(); stroke(bodyDark); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(49,33); ctx.quadraticCurveTo(53,21,50,11);
+  ctx.quadraticCurveTo(49,7,47,11); ctx.quadraticCurveTo(50,22,46,33);
+  ctx.closePath(); fill(bodyLight); ctx.globalAlpha=0.35; ctx.fill();
+  ctx.globalAlpha = d.dead ? 0.45 : 1;
+
+  // head
+  const hg=ctx.createRadialGradient(48,4,2,50,7,12);
+  hg.addColorStop(0,bodyLight); hg.addColorStop(1,bodyMain);
+  ctx.beginPath(); ctx.ellipse(50,7,12,9,.15,0,Math.PI*2);
+  ctx.fillStyle=hg; ctx.fill(); stroke(bodyDark); ctx.stroke();
+
+  // snout
+  ctx.beginPath(); ctx.ellipse(60,9,7,5,.3,0,Math.PI*2);
+  fill(bodyDark); ctx.fill(); stroke(bodyDark+'88',1); ctx.stroke();
+  fill('#1a4a1a');
+  ctx.beginPath(); ctx.ellipse(63,8,1.5,1,0,0,Math.PI*2); ctx.fill();
+
+  // smile
+  ctx.beginPath(); ctx.arc(60,11,3.5,.1,Math.PI-.1);
+  stroke(bodyDark+'cc',1.2); ctx.stroke();
+
+  // eye
+  ctx.beginPath(); ctx.arc(54,3,5,0,Math.PI*2);
+  fill('#fff'); ctx.fill(); stroke(bodyDark+'66',.8); ctx.stroke();
+  ctx.beginPath(); ctx.arc(55,3,3.2,0,Math.PI*2); fill('#1a5a1a'); ctx.fill();
+  ctx.beginPath(); ctx.arc(55,3,1.6,0,Math.PI*2);  fill('#0a1a0a'); ctx.fill();
+  ctx.beginPath(); ctx.arc(56.4,1.8,.9,0,Math.PI*2); fill('#fff'); ctx.fill();
+
+  // blush
+  ctx.save(); ctx.globalAlpha=0.25; fill('#ff9999');
+  ctx.beginPath(); ctx.ellipse(58,7,3.5,2,0,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+
+  // shield
+  if(G.shieldActive){
+    ctx.save(); ctx.globalAlpha=.3+Math.sin(G.tick*6)*.1;
+    ctx.strokeStyle='#38bdf8'; ctx.lineWidth=3; ctx.setLineDash([5,3]);
+    ctx.beginPath(); ctx.ellipse(36,28,34,28,0,0,Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+  }
+
+  // WING GLOW when flying
+  if(G.wingActive){
+    ctx.save();
+    const wPulse = 0.5 + Math.sin(G.tick*6)*0.3;
+    ctx.globalAlpha = wPulse * 0.3;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.ellipse(36,28,38,32,0,0,Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+    // draw feather wing shapes
+    ctx.globalAlpha = 0.8;
+    ctx.fillStyle = '#f4f4f5';
+    // left wing
+    ctx.beginPath();
+    ctx.moveTo(20, 28);
+    ctx.bezierCurveTo(-10, 16, -18, 2, -6, -8);
+    ctx.bezierCurveTo(2, 12, 10, 20, 20, 28);
+    ctx.closePath();
+    ctx.fill();
+    // right wing (less visible as dino faces right)
+    ctx.beginPath();
+    ctx.moveTo(50, 26);
+    ctx.bezierCurveTo(76, 12, 84, -2, 72, -10);
+    ctx.bezierCurveTo(64, 10, 58, 18, 50, 26);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.restore();   // end squish transform
+}
+
+// ─────────────────────────────────────
+//  HUD
+// ─────────────────────────────────────
+function updateHUD(){
+  document.getElementById('hudCoins').textContent = SAVE.coins + G.coinsEarned;
+  document.getElementById('hudScore').textContent = Math.floor(G.score).toLocaleString();
+  document.getElementById('hudDist').textContent  = Math.floor(G.displayDist)+'m';
+}
+
+// ─────────────────────────────────────
+//  TOAST
+// ─────────────────────────────────────
+let toastT;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>el.classList.remove('show'),1800);
+}
+
+// ─────────────────────────────────────
+//  SCREENS
+// ─────────────────────────────────────
+function show(id){ document.getElementById(id).classList.remove('off'); }
+function hide(id){ document.getElementById(id).classList.add('off'); }
+
+function showStart(){
+  show('startScr'); hide('shopScr'); hide('goScr');
+}
+function showShop(){
+  hide('startScr'); hide('goScr'); show('shopScr');
+  renderShop();
+}
+function showGameOver(){
+  show('goScr');
+  document.getElementById('goScore').textContent     = Math.floor(G.score).toLocaleString();
+  document.getElementById('goDist').textContent      = Math.floor(G.displayDist)+'m';
+  document.getElementById('goCollected').textContent = G.plantsThisRun;
+  document.getElementById('goEarned').textContent    = `+ ${G.coinsEarned} 🌿 plantas coletadas`;
+}
+
+// ─────────────────────────────────────
+//  SHOP
+// ─────────────────────────────────────
+function renderShop(){
+  document.getElementById('shopCoins').textContent = SAVE.coins;
+  const grid = document.getElementById('shopGrid');
+  grid.innerHTML='';
+
+  UPGRADES.forEach(u=>{
+    const curLvl = SAVE.upgrades[u.id] || 0;
+    const maxLvl = u.levels.length;
+    const isMax  = curLvl >= maxLvl;
+    const next   = !isMax ? u.levels[curLvl] : null;
+    const canBuy = !isMax && SAVE.coins >= next.cost;
+
+    const card = document.createElement('div');
+    card.className = 'shop-card' + (isMax?' maxed':'');
+
+    // dots
+    let dots='';
+    for(let i=0;i<maxLvl;i++) dots+=`<div class="lvl-dot${i<curLvl?' on':''}"></div>`;
+
+    card.innerHTML=`
+      <div class="shop-card-icon">${u.icon}</div>
+      <div class="shop-card-name">${u.name}</div>
+      ${u.tag==='new' ? '<span class="shop-card-tag new-tag">✨ Novo</span>' : u.tag==='power' ? '<span class="shop-card-tag power-tag">🪶 Poder</span>' : ''}
+      <div class="shop-card-desc">${u.desc}</div>
+      <div class="shop-card-level">${dots}</div>
+      <button class="buy-btn${isMax?' maxed-lbl':''}"
+        ${(!canBuy&&!isMax)?'disabled':''}
+        data-id="${u.id}">
+        ${isMax ? '✅ Máximo' : `🌿 ${next.cost} — ${next.label}`}
+      </button>`;
+
+    card.querySelector('.buy-btn').addEventListener('click',()=>{
+      if(isMax) return;
+      if(SAVE.coins < next.cost){ toast('🌿 Plantas insuficientes!'); return; }
+      SAVE.coins -= next.cost;
+      SAVE.upgrades[u.id] = curLvl+1;
+      writeSave();
+      toast(`✅ ${u.name} aprimorado!`);
+      renderShop();
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+// ─────────────────────────────────────
+//  GAME FLOW
+// ─────────────────────────────────────
+function startGame(){
+  hide('startScr'); hide('goScr'); hide('shopScr');
+  G = buildG();
+  // place dino on ground
+  G.dino.y = gY() - G.dino.h;
+  G.running = false; // wait for first press
+  toast('🌿 Pressione ESPAÇO ou toque para começar!');
+}
+
+// ─────────────────────────────────────
+//  EVENTS
+// ─────────────────────────────────────
+document.getElementById('btnPlay').addEventListener('click', startGame);
+document.getElementById('btnShopStart').addEventListener('click', showShop);
+document.getElementById('btnRestart').addEventListener('click', startGame);
+document.getElementById('btnShopGo').addEventListener('click',()=>{ hide('goScr'); showShop(); });
+document.getElementById('btnShopBack').addEventListener('click',()=>{
+  hide('shopScr');
+  // decide where to go back
+  if(G && G.dead) show('goScr');
+  else show('startScr');
+});
+
+// ─────────────────────────────────────
+//  GAME LOOP
+// ─────────────────────────────────────
+let lastTs = 0;
+function loop(ts){
+  const dt = Math.min((ts - lastTs)/1000, 0.05);
+  lastTs = ts;
+
+  update(dt);
+  render();
+  requestAnimationFrame(loop);
+}
+
+// ─────────────────────────────────────
+//  BOOT
+// ─────────────────────────────────────
+G = buildG();
+G.dino.y = LH * GROUND_FRAC - G.dino.h;
+showStart();
+requestAnimationFrame(ts=>{ lastTs=ts; requestAnimationFrame(loop); });
+</script>
+</body>
+</html>
